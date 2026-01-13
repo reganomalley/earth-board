@@ -572,49 +572,52 @@ export default function CanvasContainer() {
           }
 
           .toolbar-container {
-            bottom: 1rem !important;
-            left: 1% !important;
-            right: 1% !important;
-            transform: none !important;
-            width: 98% !important;
-            max-width: 100% !important;
+            position: fixed !important;
+            bottom: 0.5rem !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            width: 95vw !important;
+            max-width: 95vw !important;
+            z-index: 30 !important;
           }
 
           .toolbar-container > div {
-            padding: 1rem 0.75rem !important;
-            overflow-x: scroll !important;
+            padding: 0.75rem 0.5rem !important;
+            max-width: 95vw !important;
+          }
+
+          .toolbar-container > div > div {
+            overflow-x: auto !important;
             overflow-y: hidden !important;
             -webkit-overflow-scrolling: touch !important;
             display: flex !important;
-            gap: 0.75rem !important;
-            scrollbar-width: none; /* Firefox */
-            -ms-overflow-style: none; /* IE/Edge */
-            position: relative;
+            gap: 0.5rem !important;
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+            scroll-behavior: smooth !important;
+            touch-action: pan-x !important;
           }
 
-          .toolbar-container > div::-webkit-scrollbar {
-            display: none; /* Chrome/Safari */
+          .toolbar-container > div > div::-webkit-scrollbar {
+            display: none !important;
+          }
+
+          /* Make all direct children of the scrollable div non-shrinking */
+          .toolbar-container > div > div > * {
+            flex-shrink: 0 !important;
           }
 
           .toolbar-container button {
-            padding: 1rem 1.25rem !important;
-            font-size: 0.9rem !important;
+            padding: 0.75rem 1rem !important;
+            font-size: 1.1rem !important;
             white-space: nowrap !important;
             min-width: auto !important;
             flex-shrink: 0 !important;
-            display: flex !important;
-            align-items: center !important;
-            gap: 0.5rem !important;
           }
 
           .toolbar-container input[type="range"] {
-            width: 80px !important;
+            width: 70px !important;
             flex-shrink: 0 !important;
-          }
-
-          .toolbar-container .flex {
-            flex-wrap: nowrap !important;
-            gap: 0.5rem !important;
           }
 
           /* Hide color circles on mobile to save space */
