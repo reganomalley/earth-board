@@ -33,6 +33,9 @@ export default function CanvasStage({
   const [shapeStart, setShapeStart] = useState<{ x: number; y: number } | null>(null);
   const [shapeEnd, setShapeEnd] = useState<{ x: number; y: number } | null>(null);
   const [scale, setScale] = useState(1);
+  const [showTextInput, setShowTextInput] = useState(false);
+  const [textInputPos, setTextInputPos] = useState<{ x: number; y: number } | null>(null);
+  const [textInputValue, setTextInputValue] = useState('');
   const stageRef = useRef<any>(null);
 
   // Calculate scale for mobile
@@ -63,36 +66,9 @@ export default function CanvasStage({
 
     // Handle text placement
     if (activeTool === 'text') {
-      const text = prompt('Enter text (max 30 characters):');
-      if (text && text.trim()) {
-        const trimmedText = text.trim().slice(0, 30);
-
-        // Validate text for inappropriate content
-        const validation = validateTextInput(trimmedText);
-        if (!validation.valid) {
-          alert(validation.message || 'Invalid text');
-          return;
-        }
-
-        const textObject: Omit<CanvasObject, 'id' | 'canvas_id' | 'created_by' | 'created_at'> = {
-          type: 'text',
-          data: {
-            text: trimmedText,
-            fontSize: penOptions.size * 2,
-            fontFamily: '"Kalam", cursive',
-            align: 'left',
-          },
-          style: {
-            fill: penOptions.color,
-          },
-          transform: {
-            x: pos.x,
-            y: pos.y,
-          },
-        };
-        onObjectCreate(textObject);
-        soundSystem.playPop();
-      }
+      setTextInputPos(pos);
+      setShowTextInput(true);
+      setTextInputValue('');
       return;
     }
 
@@ -146,6 +122,44 @@ export default function CanvasStage({
     if (activeTool === 'pen') {
       setCurrentPoints((prev) => [...prev, [pos.x, pos.y, 0.5]]);
     }
+  };
+
+  const handleTextSubmit = () => {
+    if (!textInputValue.trim() || !textInputPos) {
+      setShowTextInput(false);
+      return;
+    }
+
+    const trimmedText = textInputValue.trim().slice(0, 30);
+
+    // Validate text for inappropriate content
+    const validation = validateTextInput(trimmedText);
+    if (!validation.valid) {
+      alert(validation.message || 'Invalid text');
+      setShowTextInput(false);
+      return;
+    }
+
+    const textObject: Omit<CanvasObject, 'id' | 'canvas_id' | 'created_by' | 'created_at'> = {
+      type: 'text',
+      data: {
+        text: trimmedText,
+        fontSize: penOptions.size * 2,
+        fontFamily: '"Kalam", cursive',
+        align: 'left',
+      },
+      style: {
+        fill: penOptions.color,
+      },
+      transform: {
+        x: textInputPos.x,
+        y: textInputPos.y,
+      },
+    };
+    onObjectCreate(textObject);
+    soundSystem.playPop();
+    setShowTextInput(false);
+    setTextInputValue('');
   };
 
   const handleMouseUp = () => {
@@ -398,6 +412,113 @@ export default function CanvasStage({
       >
         <CanvasLayer objects={allObjects} />
       </Stage>
+
+      {/* Custom text input modal */}
+      {showTextInput && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+          }}
+          onClick={() => setShowTextInput(false)}
+        >
+          <div
+            style={{
+              background: 'rgba(25, 20, 15, 0.95)',
+              backdropFilter: 'blur(12px)',
+              border: '2px solid rgba(139, 115, 85, 0.4)',
+              borderRadius: '12px',
+              padding: '2rem',
+              maxWidth: '90vw',
+              width: '400px',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3
+              style={{
+                fontFamily: '"Kalam", cursive',
+                fontSize: '1.5rem',
+                color: '#F5F5DC',
+                marginBottom: '1rem',
+                textAlign: 'center',
+              }}
+            >
+              Enter Text
+            </h3>
+            <input
+              type="text"
+              value={textInputValue}
+              onChange={(e) => setTextInputValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleTextSubmit();
+                }
+              }}
+              maxLength={30}
+              autoFocus
+              placeholder="Type here (max 30 chars)"
+              style={{
+                width: '100%',
+                padding: '1rem',
+                fontSize: '1.1rem',
+                fontFamily: '"Kalam", cursive',
+                background: 'rgba(255, 255, 245, 0.1)',
+                border: '2px solid rgba(139, 115, 85, 0.5)',
+                borderRadius: '8px',
+                color: '#F5F5DC',
+                marginBottom: '1rem',
+                outline: 'none',
+              }}
+            />
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <button
+                onClick={() => setShowTextInput(false)}
+                style={{
+                  flex: 1,
+                  padding: '0.75rem',
+                  fontFamily: '"Oswald", sans-serif',
+                  fontSize: '1rem',
+                  background: 'rgba(139, 115, 85, 0.3)',
+                  border: '1px solid rgba(139, 115, 85, 0.5)',
+                  borderRadius: '8px',
+                  color: 'rgba(245, 245, 220, 0.7)',
+                  cursor: 'pointer',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.1em',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleTextSubmit}
+                style={{
+                  flex: 1,
+                  padding: '0.75rem',
+                  fontFamily: '"Oswald", sans-serif',
+                  fontSize: '1rem',
+                  background: 'rgba(180, 83, 9, 0.6)',
+                  border: '1px solid rgba(217, 119, 6, 0.7)',
+                  borderRadius: '8px',
+                  color: '#FFF7ED',
+                  cursor: 'pointer',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.1em',
+                }}
+              >
+                Add Text
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
