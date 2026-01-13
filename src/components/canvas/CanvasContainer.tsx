@@ -304,24 +304,26 @@ export default function CanvasContainer() {
               <p style={{
                 fontFamily: '"Cormorant Garamond", serif',
                 fontSize: '0.875rem',
-                color: 'rgba(245, 245, 220, 0.7)',
+                color: 'rgba(245, 245, 220, 0.9)',
                 letterSpacing: '0.05em',
                 fontStyle: 'italic',
+                textShadow: '0 2px 8px rgba(0,0,0,0.9)',
               }}>
-                {liveUsers} {liveUsers === 1 ? 'soul' : 'souls'} creating
+                {Math.max(liveUsers, 1)} {Math.max(liveUsers, 1) === 1 ? 'soul' : 'souls'} creating
               </p>
               <span style={{
                 width: '3px',
                 height: '3px',
                 borderRadius: '50%',
-                background: 'rgba(245, 245, 220, 0.4)',
+                background: 'rgba(245, 245, 220, 0.6)',
               }} />
               <p style={{
                 fontFamily: '"Cormorant Garamond", serif',
                 fontSize: '0.875rem',
-                color: 'rgba(245, 245, 220, 0.7)',
+                color: 'rgba(245, 245, 220, 0.9)',
                 letterSpacing: '0.05em',
                 fontStyle: 'italic',
+                textShadow: '0 2px 8px rgba(0,0,0,0.9)',
               }}>
                 {formatTime()} until eternal
               </p>
@@ -564,40 +566,63 @@ export default function CanvasContainer() {
           }
 
           .toolbar-container {
-            bottom: 0.5rem !important;
+            bottom: 1rem !important;
             left: 50% !important;
             transform: translateX(-50%) !important;
-            width: 98vw !important;
+            width: 96vw !important;
             max-width: 100% !important;
           }
 
           .toolbar-container > div {
-            padding: 0.5rem !important;
+            padding: 1rem 0.75rem !important;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
             display: flex;
-            gap: 0.5rem;
+            gap: 0.75rem;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE/Edge */
+          }
+
+          .toolbar-container > div::-webkit-scrollbar {
+            display: none; /* Chrome/Safari */
           }
 
           .toolbar-container button {
-            padding: 0.6rem 0.8rem !important;
-            font-size: 0.75rem !important;
+            padding: 1rem 1.25rem !important;
+            font-size: 0.9rem !important;
             white-space: nowrap;
             min-width: auto !important;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
           }
 
           .toolbar-container input[type="range"] {
-            width: 60px !important;
+            width: 80px !important;
+            flex-shrink: 0;
           }
 
           .toolbar-container .flex {
             flex-wrap: nowrap !important;
-            gap: 0.3rem !important;
+            gap: 0.5rem !important;
           }
 
           /* Hide color circles on mobile to save space */
           .toolbar-container .w-7.h-7 {
             display: none !important;
+          }
+
+          /* Add scroll hint gradient */
+          .toolbar-container > div::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 40px;
+            background: linear-gradient(to left, rgba(25, 20, 15, 0.7), transparent);
+            pointer-events: none;
           }
         }
       `}</style>
@@ -648,7 +673,8 @@ export default function CanvasContainer() {
                   }
                 }}
               >
-                Draw
+                <span style={{ fontSize: '1.1rem' }}>✏️</span>
+                <span className="tool-label">Draw</span>
               </button>
               <button
                 onClick={() => setActiveTool('text')}
@@ -683,7 +709,8 @@ export default function CanvasContainer() {
                   }
                 }}
               >
-                Text
+                <span style={{ fontSize: '1.1rem' }}>📝</span>
+                <span className="tool-label">Text</span>
               </button>
               <button
                 onClick={() => setActiveTool('circle')}
@@ -718,7 +745,8 @@ export default function CanvasContainer() {
                   }
                 }}
               >
-                Circle
+                <span style={{ fontSize: '1.1rem' }}>⭕</span>
+                <span className="tool-label">Circle</span>
               </button>
               <button
                 onClick={() => setActiveTool('rectangle')}
@@ -753,7 +781,8 @@ export default function CanvasContainer() {
                   }
                 }}
               >
-                Rectangle
+                <span style={{ fontSize: '1.1rem' }}>▭</span>
+                <span className="tool-label">Rect</span>
               </button>
               <button
                 onClick={() => setShowEmojiPicker(true)}
