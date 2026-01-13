@@ -384,6 +384,7 @@ export default function CanvasContainer() {
 
       {/* Daily Theme Banner */}
       <div
+        className="theme-banner"
         style={{
           position: 'fixed',
           top: themeBannerPos.y === 0 ? '50%' : 'auto',
@@ -565,22 +566,30 @@ export default function CanvasContainer() {
             margin: 0 auto;
           }
 
+          /* Hide theme banner on mobile - it blocks content */
+          .theme-banner {
+            display: none !important;
+          }
+
           .toolbar-container {
             bottom: 1rem !important;
-            left: 50% !important;
-            transform: translateX(-50%) !important;
-            width: 96vw !important;
+            left: 1% !important;
+            right: 1% !important;
+            transform: none !important;
+            width: 98% !important;
             max-width: 100% !important;
           }
 
           .toolbar-container > div {
             padding: 1rem 0.75rem !important;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            display: flex;
-            gap: 0.75rem;
+            overflow-x: scroll !important;
+            overflow-y: hidden !important;
+            -webkit-overflow-scrolling: touch !important;
+            display: flex !important;
+            gap: 0.75rem !important;
             scrollbar-width: none; /* Firefox */
             -ms-overflow-style: none; /* IE/Edge */
+            position: relative;
           }
 
           .toolbar-container > div::-webkit-scrollbar {
@@ -590,17 +599,17 @@ export default function CanvasContainer() {
           .toolbar-container button {
             padding: 1rem 1.25rem !important;
             font-size: 0.9rem !important;
-            white-space: nowrap;
+            white-space: nowrap !important;
             min-width: auto !important;
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+            flex-shrink: 0 !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.5rem !important;
           }
 
           .toolbar-container input[type="range"] {
             width: 80px !important;
-            flex-shrink: 0;
+            flex-shrink: 0 !important;
           }
 
           .toolbar-container .flex {
@@ -613,16 +622,8 @@ export default function CanvasContainer() {
             display: none !important;
           }
 
-          /* Add scroll hint gradient */
-          .toolbar-container > div::after {
-            content: '';
-            position: absolute;
-            right: 0;
-            top: 0;
-            bottom: 0;
-            width: 40px;
-            background: linear-gradient(to left, rgba(25, 20, 15, 0.7), transparent);
-            pointer-events: none;
+          .toolbar-container .tool-label {
+            display: none !important;
           }
         }
       `}</style>
