@@ -556,6 +556,12 @@ export default function CanvasContainer() {
 
       {/* Mobile styles */}
       <style>{`
+        /* Hide mobile toolbar on desktop */
+        .mobile-toolbar-only {
+          display: none;
+        }
+
+        /* Mobile-specific styles */
         @media (max-width: 768px) {
           .canvas-main {
             padding: 8rem 0.5rem 6rem 0.5rem !important;
@@ -571,78 +577,122 @@ export default function CanvasContainer() {
             display: none !important;
           }
 
-          /* Reposition toolbar to be centered at bottom */
-          .toolbar-container {
-            position: fixed !important;
-            bottom: 0.5rem !important;
-            left: 50% !important;
-            right: auto !important;
-            transform: translateX(-50%) !important;
-            width: 96vw !important;
-            max-width: 96vw !important;
-          }
-
-          /* Reduce padding on wrapper */
-          .toolbar-container > div {
-            padding: 0.5rem !important;
-            width: 96vw !important;
-            max-width: 96vw !important;
-            border-radius: 8px !important;
-          }
-
-          /* Make inner toolbar scrollable */
-          .toolbar-inner {
-            overflow-x: scroll !important;
-            overflow-y: hidden !important;
-            -webkit-overflow-scrolling: touch !important;
-            gap: 0.75rem !important;
-            flex-wrap: nowrap !important;
-            scrollbar-width: none !important;
-            -ms-overflow-style: none !important;
-            scroll-snap-type: none !important;
-            touch-action: pan-x pan-y !important;
-          }
-
-          .toolbar-inner::-webkit-scrollbar {
+          /* Hide desktop toolbar on mobile */
+          .desktop-toolbar-only {
             display: none !important;
           }
 
-          /* Ensure all children don't shrink */
-          .toolbar-inner > * {
-            flex-shrink: 0 !important;
+          /* Show mobile toolbar */
+          .mobile-toolbar-only {
+            display: block !important;
+            position: fixed;
+            bottom: 0.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 95vw;
+            max-width: 95vw;
+            z-index: 30;
+            background: rgba(25, 20, 15, 0.9);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(139, 115, 85, 0.4);
+            border-radius: 8px;
+            padding: 0.75rem 0.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.6);
           }
 
-          /* Style buttons for mobile */
-          .tools-section {
-            gap: 0.5rem !important;
-            flex-shrink: 0 !important;
+          .mobile-toolbar-scroll {
+            display: flex;
+            gap: 0.5rem;
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            scroll-behavior: smooth;
+            align-items: center;
           }
 
-          .toolbar-container button {
-            padding: 0.75rem !important;
-            font-size: 1.25rem !important;
-            min-width: 50px !important;
-            flex-shrink: 0 !important;
+          .mobile-toolbar-scroll::-webkit-scrollbar {
+            display: none;
           }
 
-          .toolbar-container input[type="range"] {
-            width: 70px !important;
-            flex-shrink: 0 !important;
+          .mobile-toolbar-scroll button {
+            flex-shrink: 0;
+            background: rgba(180, 83, 9, 0.2);
+            border: 1px solid rgba(139, 115, 85, 0.3);
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 200ms;
+            min-width: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
           }
 
-          /* Hide color circles and text labels on mobile */
-          .toolbar-container .w-7.h-7 {
-            display: none !important;
+          .mobile-toolbar-scroll button.active {
+            background: rgba(180, 83, 9, 0.6);
+            border-color: rgba(217, 119, 6, 0.7);
+            box-shadow: 0 2px 8px rgba(217, 119, 6, 0.3);
           }
 
-          .tool-label {
-            display: none !important;
+          .mobile-toolbar-scroll button.color-btn {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            border-radius: 50%;
+            min-width: 40px;
+          }
+
+          .mobile-toolbar-scroll .mobile-divider {
+            width: 2px;
+            height: 30px;
+            background: rgba(139, 115, 85, 0.3);
+            flex-shrink: 0;
+          }
+
+          .mobile-toolbar-scroll input[type="range"] {
+            flex-shrink: 0;
+            width: 80px;
+            accent-color: #b45309;
           }
         }
       `}</style>
 
-      {/* Floating toolbar - bottom */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-30 toolbar-container">
+      {/* Mobile-only toolbar - simple horizontal scroll */}
+      <div className="mobile-toolbar-only">
+        <div className="mobile-toolbar-scroll">
+          <button onClick={() => setActiveTool('pen')} className={activeTool === 'pen' ? 'active' : ''}>✏️</button>
+          <button onClick={() => setActiveTool('text')} className={activeTool === 'text' ? 'active' : ''}>📝</button>
+          <button onClick={() => setActiveTool('circle')} className={activeTool === 'circle' ? 'active' : ''}>⭕</button>
+          <button onClick={() => setActiveTool('rectangle')} className={activeTool === 'rectangle' ? 'active' : ''}>▭</button>
+          <button onClick={() => setShowEmojiPicker(true)}>🎨</button>
+          <div className="mobile-divider"></div>
+          {NATURE_COLORS.map((color) => (
+            <button
+              key={color}
+              onClick={() => updatePenColor(color)}
+              className="color-btn"
+              style={{
+                backgroundColor: color,
+                border: penOptions.color === color ? '3px solid white' : '2px solid rgba(139, 115, 85, 0.3)',
+              }}
+            />
+          ))}
+          <div className="mobile-divider"></div>
+          <input
+            type="range"
+            min="1"
+            max="50"
+            value={penOptions.size}
+            onChange={(e) => updatePenSize(parseInt(e.target.value))}
+          />
+        </div>
+      </div>
+
+      {/* Desktop toolbar - bottom */}
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-30 toolbar-container desktop-toolbar-only">
         <div
           className="backdrop-blur-xl rounded-sm shadow-2xl px-10 py-5 border"
           style={{
