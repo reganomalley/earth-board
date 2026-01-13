@@ -551,8 +551,49 @@ export default function CanvasContainer() {
         </div>
       </div>
 
+      {/* Mobile styles */}
+      <style>{`
+        @media (max-width: 768px) {
+          .canvas-main {
+            padding: 5rem 0.5rem !important;
+            overflow-x: auto;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+          }
+
+          .canvas-main > div {
+            margin: 0 auto;
+          }
+
+          .toolbar-container {
+            bottom: 1rem !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            width: 95vw !important;
+            max-width: 100% !important;
+          }
+
+          .toolbar-container > div {
+            padding: 0.75rem !important;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+          }
+
+          .toolbar-container button {
+            padding: 0.75rem 1rem !important;
+            font-size: 0.875rem !important;
+            white-space: nowrap;
+          }
+
+          .toolbar-container .flex {
+            flex-wrap: nowrap !important;
+            gap: 0.5rem !important;
+          }
+        }
+      `}</style>
+
       {/* Floating toolbar - bottom */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-30">
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-30 toolbar-container">
         <div
           className="backdrop-blur-xl rounded-sm shadow-2xl px-10 py-5 border"
           style={{
@@ -789,7 +830,7 @@ export default function CanvasContainer() {
       </div>
 
       {/* Main content - Full screen with centered canvas */}
-      <main className="min-h-screen flex items-center justify-center py-20 px-4 relative">
+      <main className="min-h-screen flex items-center justify-center py-20 px-4 relative canvas-main">
         {/* Canvas with earth surroundings */}
         <div className="relative">
           {/* Multi-layered organic earth glow - creates depth */}

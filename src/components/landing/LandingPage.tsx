@@ -227,9 +227,9 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
       {/* Enter button - simple black box with ripple effect */}
       <button
         onClick={handleEnter}
+        className="enter-button"
         style={{
           position: 'fixed',
-          bottom: '18rem',
           left: '50%',
           transform: 'translateX(-50%)',
           zIndex: 20,
@@ -300,6 +300,16 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
           to {
             transform: scale(4);
             opacity: 0;
+          }
+        }
+
+        .enter-button {
+          bottom: 18rem;
+        }
+
+        @media (max-width: 768px) {
+          .enter-button {
+            bottom: 8rem !important;
           }
         }
       `}</style>
