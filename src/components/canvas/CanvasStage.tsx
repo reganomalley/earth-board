@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Stage } from 'react-konva';
 import CanvasLayer from './CanvasLayer';
 import { generateStroke } from '../../utils/strokeHelpers';
@@ -32,10 +32,32 @@ export default function CanvasStage({
   const [currentPoints, setCurrentPoints] = useState<number[][]>([]);
   const [shapeStart, setShapeStart] = useState<{ x: number; y: number } | null>(null);
   const [shapeEnd, setShapeEnd] = useState<{ x: number; y: number } | null>(null);
+  const [scale, setScale] = useState(1);
   const stageRef = useRef<any>(null);
+
+  // Calculate scale for mobile
+  useEffect(() => {
+    const updateScale = () => {
+      if (window.innerWidth < 768) {
+        const scaleX = (window.innerWidth * 0.95) / width;
+        setScale(Math.min(scaleX, 1));
+      } else {
+        setScale(1);
+      }
+    };
+    updateScale();
+    window.addEventListener('resize', updateScale);
+    return () => window.removeEventListener('resize', updateScale);
+  }, [width]);
 
   const handleMouseDown = (e: any) => {
     if (disabled) return;
+
+    // Prevent drawing on multi-touch (pinch gestures)
+    const evt = e.evt;
+    if (evt && evt.touches && evt.touches.length > 1) {
+      return;
+    }
 
     const pos = e.target.getStage().getPointerPosition();
 
@@ -292,7 +314,15 @@ export default function CanvasStage({
   const todayRoman = dateToRoman(new Date());
 
   return (
-    <div className="border-2 border-gray-800 rounded-lg shadow-xl overflow-hidden relative">
+    <div
+      className="border-2 border-gray-800 rounded-lg shadow-xl overflow-hidden relative"
+      style={{
+        transform: `scale(${scale})`,
+        transformOrigin: 'top center',
+        width: width,
+        height: height,
+      }}
+    >
       {/* Earth-textured background layer */}
       <div
         className="absolute inset-0 pointer-events-none"

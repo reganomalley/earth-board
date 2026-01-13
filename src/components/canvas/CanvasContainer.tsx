@@ -555,10 +555,8 @@ export default function CanvasContainer() {
       <style>{`
         @media (max-width: 768px) {
           .canvas-main {
-            padding: 5rem 0.5rem !important;
-            overflow-x: auto;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
+            padding: 8rem 0.5rem 6rem 0.5rem !important;
+            overflow: visible;
           }
 
           .canvas-main > div {
@@ -566,28 +564,40 @@ export default function CanvasContainer() {
           }
 
           .toolbar-container {
-            bottom: 1rem !important;
+            bottom: 0.5rem !important;
             left: 50% !important;
             transform: translateX(-50%) !important;
-            width: 95vw !important;
+            width: 98vw !important;
             max-width: 100% !important;
           }
 
           .toolbar-container > div {
-            padding: 0.75rem !important;
+            padding: 0.5rem !important;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
+            display: flex;
+            gap: 0.5rem;
           }
 
           .toolbar-container button {
-            padding: 0.75rem 1rem !important;
-            font-size: 0.875rem !important;
+            padding: 0.6rem 0.8rem !important;
+            font-size: 0.75rem !important;
             white-space: nowrap;
+            min-width: auto !important;
+          }
+
+          .toolbar-container input[type="range"] {
+            width: 60px !important;
           }
 
           .toolbar-container .flex {
             flex-wrap: nowrap !important;
-            gap: 0.5rem !important;
+            gap: 0.3rem !important;
+          }
+
+          /* Hide color circles on mobile to save space */
+          .toolbar-container .w-7.h-7 {
+            display: none !important;
           }
         }
       `}</style>
