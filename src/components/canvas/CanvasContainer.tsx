@@ -571,47 +571,57 @@ export default function CanvasContainer() {
             display: none !important;
           }
 
+          /* Reposition toolbar to be centered at bottom */
           .toolbar-container {
             position: fixed !important;
             bottom: 0.5rem !important;
             left: 50% !important;
+            right: auto !important;
             transform: translateX(-50%) !important;
-            width: 95vw !important;
-            max-width: 95vw !important;
-            z-index: 30 !important;
+            width: 96vw !important;
+            max-width: 96vw !important;
           }
 
+          /* Reduce padding on wrapper */
           .toolbar-container > div {
-            padding: 0.75rem 0.5rem !important;
-            max-width: 95vw !important;
+            padding: 0.5rem !important;
+            width: 96vw !important;
+            max-width: 96vw !important;
+            border-radius: 8px !important;
           }
 
-          .toolbar-container > div > div {
-            overflow-x: auto !important;
+          /* Make inner toolbar scrollable */
+          .toolbar-inner {
+            overflow-x: scroll !important;
             overflow-y: hidden !important;
             -webkit-overflow-scrolling: touch !important;
-            display: flex !important;
-            gap: 0.5rem !important;
+            gap: 0.75rem !important;
+            flex-wrap: nowrap !important;
             scrollbar-width: none !important;
             -ms-overflow-style: none !important;
-            scroll-behavior: smooth !important;
-            touch-action: pan-x !important;
+            scroll-snap-type: none !important;
+            touch-action: pan-x pan-y !important;
           }
 
-          .toolbar-container > div > div::-webkit-scrollbar {
+          .toolbar-inner::-webkit-scrollbar {
             display: none !important;
           }
 
-          /* Make all direct children of the scrollable div non-shrinking */
-          .toolbar-container > div > div > * {
+          /* Ensure all children don't shrink */
+          .toolbar-inner > * {
+            flex-shrink: 0 !important;
+          }
+
+          /* Style buttons for mobile */
+          .tools-section {
+            gap: 0.5rem !important;
             flex-shrink: 0 !important;
           }
 
           .toolbar-container button {
-            padding: 0.75rem 1rem !important;
-            font-size: 1.1rem !important;
-            white-space: nowrap !important;
-            min-width: auto !important;
+            padding: 0.75rem !important;
+            font-size: 1.25rem !important;
+            min-width: 50px !important;
             flex-shrink: 0 !important;
           }
 
@@ -620,12 +630,12 @@ export default function CanvasContainer() {
             flex-shrink: 0 !important;
           }
 
-          /* Hide color circles on mobile to save space */
+          /* Hide color circles and text labels on mobile */
           .toolbar-container .w-7.h-7 {
             display: none !important;
           }
 
-          .toolbar-container .tool-label {
+          .tool-label {
             display: none !important;
           }
         }
@@ -641,9 +651,9 @@ export default function CanvasContainer() {
             boxShadow: '0 8px 40px rgba(0,0,0,0.6), 0 0 80px rgba(139, 115, 85, 0.15)',
           }}
         >
-          <div className="flex items-center gap-8">
+          <div className="flex items-center gap-8 toolbar-inner">
             {/* Tools */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div className="tools-section" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <button
                 onClick={() => setActiveTool('pen')}
                 style={{
