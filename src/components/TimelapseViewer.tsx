@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { Stage, Layer, Line, Circle, Rect, Text } from 'react-konva';
 import type { Canvas, CanvasObject } from '../types/canvas.types';
 import { supabase } from '../services/supabase';
 
@@ -150,46 +151,99 @@ export default function TimelapseViewer({ canvas, onClose }: TimelapseViewerProp
           marginBottom: '1.5rem',
           position: 'relative',
           overflow: 'hidden',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
         }}>
-          {/* Show canvas snapshot if available */}
-          {canvas.snapshot_url ? (
-            <img
-              src={canvas.snapshot_url}
-              alt={canvas.name || 'Canvas'}
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'contain',
-              }}
-            />
-          ) : (
-            <div style={{
-              textAlign: 'center',
-              padding: '2rem',
-            }}>
-              <p style={{
-                fontFamily: '"Kalam", cursive',
-                fontSize: '1.25rem',
-                color: 'rgba(139, 115, 85, 0.6)',
-                marginBottom: '0.5rem',
-                textTransform: 'lowercase',
-              }}>
-                no preview available
-              </p>
-              <p style={{
-                fontFamily: '"Cormorant Garamond", serif',
-                fontSize: '0.875rem',
-                color: 'rgba(139, 115, 85, 0.5)',
-                fontStyle: 'italic',
-                textTransform: 'lowercase',
-              }}>
-                {objects.length} marks were placed on this canvas
-              </p>
-            </div>
-          )}
+          <Stage width={800} height={450} scaleX={0.571} scaleY={0.571}>
+            <Layer>
+              {visibleObjects.map((obj) => {
+                const transform = obj.transform || { x: 0, y: 0 };
+                const style = obj.style || {};
+
+                // Render stroke/pen
+                if (obj.type === 'stroke' && obj.data?.strokePoints) {
+                  return (
+                    <Line
+                      key={obj.id}
+                      points={obj.data.strokePoints.flat()}
+                      stroke={style.color || '#000000'}
+                      strokeWidth={style.strokeWidth || 2}
+                      fill={style.fill || style.color || '#000000'}
+                      lineCap="round"
+                      lineJoin="round"
+                      tension={0.5}
+                      closed={true}
+                    />
+                  );
+                }
+
+                // Render circle
+                if (obj.type === 'circle' && obj.data) {
+                  const radius = Math.sqrt(
+                    Math.pow(obj.data.endX - transform.x, 2) +
+                    Math.pow(obj.data.endY - transform.y, 2)
+                  );
+                  return (
+                    <Circle
+                      key={obj.id}
+                      x={transform.x}
+                      y={transform.y}
+                      radius={radius}
+                      stroke={style.color || '#000000'}
+                      strokeWidth={style.strokeWidth || 2}
+                      fill={style.fill || 'transparent'}
+                    />
+                  );
+                }
+
+                // Render rectangle
+                if (obj.type === 'rectangle' && obj.data) {
+                  const width = obj.data.endX - transform.x;
+                  const height = obj.data.endY - transform.y;
+                  return (
+                    <Rect
+                      key={obj.id}
+                      x={transform.x}
+                      y={transform.y}
+                      width={width}
+                      height={height}
+                      stroke={style.color || '#000000'}
+                      strokeWidth={style.strokeWidth || 2}
+                      fill={style.fill || 'transparent'}
+                    />
+                  );
+                }
+
+                // Render text
+                if (obj.type === 'text' && obj.data?.text) {
+                  return (
+                    <Text
+                      key={obj.id}
+                      x={transform.x}
+                      y={transform.y}
+                      text={obj.data.text}
+                      fontSize={style.fontSize || 24}
+                      fontFamily={style.fontFamily || 'Kalam'}
+                      fill={style.color || '#000000'}
+                    />
+                  );
+                }
+
+                // Render sticker (emoji)
+                if (obj.type === 'sticker' && obj.data?.emoji) {
+                  return (
+                    <Text
+                      key={obj.id}
+                      x={transform.x}
+                      y={transform.y}
+                      text={obj.data.emoji}
+                      fontSize={obj.data.size || 48}
+                    />
+                  );
+                }
+
+                return null;
+              })}
+            </Layer>
+          </Stage>
         </div>
 
         {/* Controls */}
