@@ -1,0 +1,11 @@
+const CanvasStage = forwardRef<CanvasStageRef, CanvasStageProps>((props, ref) => {
+  const {
+    width,
+    height,
+    objects,
+    activeTool,
+    penOptions,
+    selectedEmoji,
+    onObjectCreate,
+    disabled,
+  } = props;
