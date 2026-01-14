@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { Stage } from 'react-konva';
 import CanvasLayer from './CanvasLayer';
 import { generateStroke } from '../../utils/strokeHelpers';
@@ -6,6 +6,7 @@ import { validateTextInput } from '../../utils/moderationHelpers';
 import { dateToRoman } from '../../utils/romanNumerals';
 import { soundSystem } from '../../utils/soundEffects';
 import type { CanvasObject, PenOptions, ToolType } from '../../types/canvas.types';
+import type Konva from 'konva';
 
 interface CanvasStageProps {
   width: number;
@@ -18,7 +19,11 @@ interface CanvasStageProps {
   disabled?: boolean;
 }
 
-export default function CanvasStage({
+export interface CanvasStageRef {
+  getStage: () => Konva.Stage | null;
+}
+
+const CanvasStage = forwardRef<CanvasStageRef, CanvasStageProps>(({
   width,
   height,
   objects,
@@ -37,6 +42,11 @@ export default function CanvasStage({
   const [textInputPos, setTextInputPos] = useState<{ x: number; y: number } | null>(null);
   const [textInputValue, setTextInputValue] = useState('');
   const stageRef = useRef<any>(null);
+
+  // Expose stage ref to parent component for snapshot capture
+  useImperativeHandle(ref, () => ({
+    getStage: () => stageRef.current,
+  }));
 
   // Calculate scale for mobile
   useEffect(() => {
@@ -521,4 +531,8 @@ export default function CanvasStage({
       )}
     </div>
   );
-}
+});
+
+CanvasStage.displayName = 'CanvasStage';
+
+export default CanvasStage;

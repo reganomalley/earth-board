@@ -144,31 +144,52 @@ export default function TimelapseViewer({ canvas, onClose }: TimelapseViewerProp
         <div style={{
           width: '800px',
           height: '450px',
-          background: '#000000',
+          background: '#F5F5DC',
           borderRadius: '8px',
           border: '2px solid rgba(139, 115, 85, 0.3)',
           marginBottom: '1.5rem',
           position: 'relative',
           overflow: 'hidden',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
         }}>
-          {/* Render visible objects */}
-          <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-            {visibleObjects.map((obj) => (
-              <div
-                key={obj.id}
-                style={{
-                  position: 'absolute',
-                  left: obj.transform?.x || 0,
-                  top: obj.transform?.y || 0,
-                  fontSize: obj.type === 'sticker' ? '2rem' : '1rem',
-                  color: obj.style?.color || '#FFFFFF',
-                  pointerEvents: 'none',
-                }}
-              >
-                {obj.type === 'sticker' && obj.data?.stickerId}
-              </div>
-            ))}
-          </div>
+          {/* Show canvas snapshot if available */}
+          {canvas.snapshot_url ? (
+            <img
+              src={canvas.snapshot_url}
+              alt={canvas.name || 'Canvas'}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain',
+              }}
+            />
+          ) : (
+            <div style={{
+              textAlign: 'center',
+              padding: '2rem',
+            }}>
+              <p style={{
+                fontFamily: '"Kalam", cursive',
+                fontSize: '1.25rem',
+                color: 'rgba(139, 115, 85, 0.6)',
+                marginBottom: '0.5rem',
+                textTransform: 'lowercase',
+              }}>
+                no preview available
+              </p>
+              <p style={{
+                fontFamily: '"Cormorant Garamond", serif',
+                fontSize: '0.875rem',
+                color: 'rgba(139, 115, 85, 0.5)',
+                fontStyle: 'italic',
+                textTransform: 'lowercase',
+              }}>
+                {objects.length} marks were placed on this canvas
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Controls */}

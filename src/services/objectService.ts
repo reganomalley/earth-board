@@ -1,6 +1,7 @@
 import { supabase } from './supabase';
 import { getSessionId } from '../utils/sessionManager';
-import { getCanvasName } from '../utils/romanNumerals';
+import { dateToRoman } from '../utils/romanNumerals';
+import { getESTDate } from '../utils/timezoneUtils';
 import type { CanvasObject } from '../types/canvas.types';
 
 /**
@@ -113,11 +114,14 @@ export const deleteCanvasObject = async (
  */
 export const getActiveCanvas = async () => {
   try {
+    // Use EST timezone for canvas dates
+    const todayDateEST = getESTDate();
+
     const { data, error } = await supabase
       .from('canvases')
       .select('*')
       .eq('status', 'active')
-      .eq('date', new Date().toISOString().split('T')[0])
+      .eq('date', todayDateEST)
       .single();
 
     if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
@@ -132,13 +136,14 @@ export const getActiveCanvas = async () => {
         .select('*', { count: 'exact', head: true });
 
       const isFirstCanvas = (count || 0) === 0;
-      const todayDate = new Date().toISOString().split('T')[0];
-      const canvasName = getCanvasName(todayDate, isFirstCanvas);
+
+      // Generate canvas name: "the big bang" for first, or Roman numeral date (I.XIV.MMXXVI)
+      const canvasName = isFirstCanvas ? 'the big bang' : dateToRoman(todayDateEST);
 
       const { data: newCanvas, error: createError } = await supabase
         .from('canvases')
         .insert({
-          date: todayDate,
+          date: todayDateEST,
           name: canvasName,
           status: 'active',
         })
@@ -173,5 +178,58 @@ export const getArchivedCanvases = async () => {
   } catch (error) {
     console.error('Error fetching archived canvases:', error);
     return [];
+  }
+};
+
+/**
+ * Upload a canvas snapshot image to Supabase Storage
+ * @param canvasId UUID of the canvas
+ * @param blob Image blob (PNG)
+ * @returns Public URL of the uploaded image or null if failed
+ */
+export const uploadCanvasSnapshot = async (
+  canvasId: string,
+  blob: Blob
+): Promise<string | null> => {
+  try {
+    const fileName = `${canvasId}.png`;
+
+    // Upload to Supabase Storage
+    const { data, error: uploadError } = await supabase.storage
+      .from('canvas-previews')
+      .upload(fileName, blob, {
+        upsert: true, // Overwrite if exists
+        contentType: 'image/png',
+      });
+
+    if (uploadError) {
+      console.error('Error uploading snapshot:', uploadError);
+      return null;
+    }
+
+    // Get public URL
+    const { data: urlData } = supabase.storage
+      .from('canvas-previews')
+      .getPublicUrl(fileName);
+
+    const publicUrl = urlData.publicUrl;
+
+    // Update canvas with snapshot URL
+    const { error: updateError } = await supabase
+      .from('canvases')
+      .update({ snapshot_url: publicUrl })
+      .eq('id', canvasId);
+
+    if (updateError) {
+      console.error('Error updating canvas with snapshot URL:', updateError);
+      return null;
+    }
+
+    console.log(`Uploaded snapshot for canvas ${canvasId}: ${publicUrl}`);
+
+    return publicUrl;
+  } catch (error) {
+    console.error('Error in uploadCanvasSnapshot:', error);
+    return null;
   }
 };

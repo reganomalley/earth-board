@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useCanvas } from '../../hooks/useCanvas';
 import { useCanvasObjects } from '../../hooks/useCanvasObjects';
 import { useArchives } from '../../hooks/useArchives';
@@ -6,7 +6,7 @@ import { usePresence } from '../../hooks/usePresence';
 import { useCountdown } from '../../hooks/useCountdown';
 import { useLiveCursors } from '../../hooks/useLiveCursors';
 import { useReactions } from '../../hooks/useReactions';
-import CanvasStage from './CanvasStage';
+import CanvasStage, { type CanvasStageRef } from './CanvasStage';
 import LandingPage from '../landing/LandingPage';
 import ShareModal from '../ShareModal';
 import ActivityFeed from '../ActivityFeed';
@@ -19,6 +19,8 @@ import { DEFAULT_PEN_OPTIONS } from '../../utils/strokeHelpers';
 import { EMOJI_CATEGORIES } from '../../utils/emojiStickers';
 import { getTodaysTheme } from '../../utils/dailyThemes';
 import { soundSystem } from '../../utils/soundEffects';
+import { captureCanvasSnapshot } from '../../utils/snapshotUtils';
+import { uploadCanvasSnapshot } from '../../services/objectService';
 
 const CANVAS_WIDTH = 1400;
 const CANVAS_HEIGHT = 800;
@@ -67,6 +69,9 @@ export default function CanvasContainer() {
   const [themeBannerPos, setThemeBannerPos] = useState({ x: 0, y: 0 });
   const [isDraggingBanner, setIsDraggingBanner] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [isCapturingSnapshot, setIsCapturingSnapshot] = useState(false);
+
+  const canvasStageRef = useRef<CanvasStageRef>(null);
 
   const handleObjectCreate = async (object: Omit<CanvasObject, 'id' | 'canvas_id' | 'created_by' | 'created_at'>) => {
     await addObject(object);
@@ -93,6 +98,46 @@ export default function CanvasContainer() {
   const handleWatchTimelapse = (archive: Canvas) => {
     setSelectedCanvas(archive);
     setShowTimelapse(true);
+  };
+
+  const handleCaptureSnapshot = async () => {
+    if (!canvas?.id || !canvasStageRef.current) {
+      console.error('Canvas or stage ref not available');
+      return;
+    }
+
+    setIsCapturingSnapshot(true);
+
+    try {
+      // Get the Konva Stage
+      const stage = canvasStageRef.current.getStage();
+      if (!stage) {
+        throw new Error('Stage not available');
+      }
+
+      // Capture snapshot as blob
+      const stageRef = { current: stage };
+      const blob = await captureCanvasSnapshot(stageRef);
+
+      if (!blob) {
+        throw new Error('Failed to capture snapshot');
+      }
+
+      // Upload to Supabase Storage
+      const snapshotUrl = await uploadCanvasSnapshot(canvas.id, blob);
+
+      if (snapshotUrl) {
+        console.log('✅ Snapshot saved successfully!', snapshotUrl);
+        alert('Canvas snapshot saved to archives!');
+      } else {
+        throw new Error('Failed to upload snapshot');
+      }
+    } catch (error) {
+      console.error('Error capturing snapshot:', error);
+      alert('Failed to save snapshot. Check console for details.');
+    } finally {
+      setIsCapturingSnapshot(false);
+    }
   };
 
   const handleBannerMouseDown = (e: React.MouseEvent) => {
@@ -343,6 +388,42 @@ export default function CanvasContainer() {
                 fontFamily: '"Oswald", sans-serif',
               }}>{formattedDate}</p>
             </div>
+            <button
+              onClick={handleCaptureSnapshot}
+              disabled={isCapturingSnapshot}
+              style={{
+                padding: '0.65rem 1.5rem',
+                background: 'rgba(30, 25, 20, 0.6)',
+                backdropFilter: 'blur(8px)',
+                border: '2px solid rgba(139, 115, 85, 0.4)',
+                borderRadius: '25px',
+                fontSize: '0.875rem',
+                fontWeight: 300,
+                color: 'rgba(200, 180, 140, 0.9)',
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+                cursor: isCapturingSnapshot ? 'wait' : 'pointer',
+                transition: 'all 300ms',
+                fontFamily: '"Oswald", sans-serif',
+                textShadow: '0 2px 6px rgba(0,0,0,0.6)',
+                pointerEvents: 'auto',
+                opacity: isCapturingSnapshot ? 0.5 : 1,
+              }}
+              onMouseEnter={(e) => {
+                if (!isCapturingSnapshot) {
+                  e.currentTarget.style.background = 'rgba(40, 35, 30, 0.8)';
+                  e.currentTarget.style.borderColor = 'rgba(139, 115, 85, 0.6)';
+                  e.currentTarget.style.color = '#F5F5DC';
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(30, 25, 20, 0.6)';
+                e.currentTarget.style.borderColor = 'rgba(139, 115, 85, 0.4)';
+                e.currentTarget.style.color = 'rgba(200, 180, 140, 0.9)';
+              }}
+            >
+              {isCapturingSnapshot ? 'Saving...' : '📸 Save'}
+            </button>
             <button
               onClick={() => setShowGallery(true)}
               style={{
@@ -1004,6 +1085,7 @@ export default function CanvasContainer() {
             }}
           >
             <CanvasStage
+              ref={canvasStageRef}
               width={CANVAS_WIDTH}
               height={CANVAS_HEIGHT}
               objects={objects}
@@ -1334,23 +1416,31 @@ export default function CanvasContainer() {
                         e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.5)';
                       }}
                     >
-                      {/* Canvas preview placeholder */}
-                      <div style={{
-                        width: '100%',
-                        aspectRatio: '16 / 9',
-                        background: 'rgba(20, 15, 30, 0.8)',
-                        borderRadius: '4px',
-                        marginBottom: '1rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        border: '1px solid rgba(140, 120, 180, 0.2)',
-                      }}>
-                        <p style={{
-                          fontSize: '3rem',
-                          color: 'rgba(140, 120, 180, 0.3)',
-                        }}>🎨</p>
-                      </div>
+                      {/* Canvas preview */}
+                      {archive.snapshot_url && (
+                        <div style={{
+                          width: '100%',
+                          aspectRatio: '16 / 9',
+                          background: 'rgba(20, 15, 30, 0.8)',
+                          borderRadius: '4px',
+                          marginBottom: '1rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          border: '1px solid rgba(140, 120, 180, 0.2)',
+                          overflow: 'hidden',
+                        }}>
+                          <img
+                            src={archive.snapshot_url}
+                            alt={archive.name || 'Canvas'}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover',
+                            }}
+                          />
+                        </div>
+                      )}
 
                       {/* Canvas name */}
                       <h3 style={{

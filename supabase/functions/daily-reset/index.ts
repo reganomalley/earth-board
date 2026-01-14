@@ -53,11 +53,28 @@ serve(async (req) => {
     if (activeCanvas) {
       console.log(`Archiving canvas: ${activeCanvas.id} (${activeCanvas.name || activeCanvas.date})`);
 
+      // Count objects and unique participants before archiving
+      const { data: objects, error: objectsError } = await supabaseAdmin
+        .from('canvas_objects')
+        .select('created_by')
+        .eq('canvas_id', activeCanvas.id);
+
+      if (objectsError) {
+        console.error('Error counting objects:', objectsError);
+      }
+
+      const objectCount = objects?.length || 0;
+      const uniqueParticipants = objects ? new Set(objects.map((obj: any) => obj.created_by)).size : 0;
+
+      console.log(`  Objects: ${objectCount}, Participants: ${uniqueParticipants}`);
+
       const { error: archiveError } = await supabaseAdmin
         .from('canvases')
         .update({
           status: 'archived',
           archived_at: new Date().toISOString(),
+          object_count: objectCount,
+          participant_count: uniqueParticipants,
         })
         .eq('id', activeCanvas.id);
 
@@ -65,7 +82,7 @@ serve(async (req) => {
         throw archiveError;
       }
 
-      console.log('Canvas archived successfully');
+      console.log('Canvas archived successfully with counts updated');
     }
 
     // Create new canvas for today
